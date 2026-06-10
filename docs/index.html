@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neuro Reaper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d10; --panel:#12151a; --line:#242a33; --line2:#2e3640;
+  --text:#cfd6dd; --dim:#7c8691; --gold:#f0a832; --blue:#5aa7ff;
+  --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+.card{max-width:560px;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:28px 30px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;margin-bottom:10px}
+.logo .gem{width:16px;height:16px;background:var(--gold);transform:rotate(45deg);border-radius:3px;box-shadow:0 0 10px rgba(240,168,50,.45)}
+.logo b{color:var(--gold)}
+.tag{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+p{color:var(--dim);margin-bottom:18px}
+.links{list-style:none}
+.links li{border:1px solid var(--line2);border-left:3px solid var(--gold);border-radius:8px;margin-bottom:10px;transition:border-color .2s}
+.links li:hover{border-color:var(--gold)}
+.links a{display:block;padding:14px 16px}
+.links .nm{font-weight:600;font-size:15px;color:var(--text)}
+.links a:hover .nm{color:var(--gold)}
+.links a:hover{text-decoration:none}
+.links .ds{font-size:13px;color:var(--dim);margin-top:2px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo"><div class="gem"></div><span>Neuro<b>Reaper</b></span></div>
+  <div class="tag">divergence debugger for on-device inference</div>
+  <p>Отладчик расхождений: где и насколько разъехались fp32 и int8, CPU и NPU — по каждой ноде ONNX-графа.</p>
+  <ul class="links">
+    <li><a href="neuro-reaper-course_ru.html">
+      <div class="nm">Учебный курс · 38 вечеров</div>
+      <div class="ds">От тензора на бумаге до релиза v1 — по одному вечеру за раз. Прогресс хранится в браузере.</div>
+    </a></li>
+  </ul>
+</div>
+</body>
+</html>
