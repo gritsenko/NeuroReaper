@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neuro Reaper · Учебный курс</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d10; --panel:#12151a; --panel2:#171b21; --line:#242a33; --line2:#2e3640;
+  --text:#cfd6dd; --dim:#7c8691; --faint:#586069;
+  --gold:#f0a832; --gold-dim:#8a6420; --green:#46c068; --blue:#5aa7ff; --red:#ef5350; --purple:#b88cf0;
+  --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono)}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* header */
+header{position:sticky;top:0;z-index:50;background:rgba(11,13,16,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;white-space:nowrap}
+.logo .gem{width:15px;height:15px;background:var(--gold);transform:rotate(45deg);border-radius:3px;box-shadow:0 0 10px rgba(240,168,50,.45)}
+.logo span b{color:var(--gold)}
+.hdr-label{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+.hdr-progress{display:flex;align-items:center;gap:10px;margin-left:auto}
+.hdr-progress .pct{font-family:var(--mono);font-size:14px;color:var(--gold);font-weight:600;min-width:46px;text-align:right}
+#heatstrip{display:flex;gap:2px;height:14px;align-items:flex-end}
+#heatstrip i{display:block;width:5px;background:var(--line2);border-radius:1px;height:7px;transition:background .2s,height .2s}
+#heatstrip i.done{background:var(--green);height:14px}
+#heatstrip i.current{background:var(--gold);height:14px;box-shadow:0 0 6px rgba(240,168,50,.6)}
+
+/* intro */
+.wrap{max-width:880px;margin:0 auto;padding:26px 20px 90px}
+.intro{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:20px 22px;margin-bottom:26px}
+.intro h1{font-size:21px;margin-bottom:8px}
+.intro h1 em{color:var(--gold);font-style:normal}
+.intro p{color:var(--dim);margin-bottom:10px}
+.intro p:last-child{margin-bottom:0}
+.intro .rules{margin-top:14px;border-top:1px dashed var(--line2);padding-top:14px;font-size:13.5px}
+.intro .rules b{color:var(--text)}
+
+/* phase graph nav */
+.graphnav{margin:0 0 30px;overflow-x:auto;padding:6px 2px 14px}
+.graphnav-inner{display:flex;align-items:stretch;gap:0;min-width:max-content}
+.gn-node{position:relative;border:1px solid var(--line2);background:var(--panel2);border-radius:8px;padding:10px 14px 12px;min-width:148px;cursor:pointer;border-left:3px solid var(--gold-dim);transition:border-color .2s}
+.gn-node:hover{border-color:var(--gold)}
+.gn-node .op{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.gn-node .nm{font-family:var(--mono);font-size:13.5px;font-weight:600;margin:2px 0 8px}
+.gn-node .strip{display:flex;gap:2px;height:6px}
+.gn-node .strip i{flex:1;background:var(--line2);border-radius:1px}
+.gn-node .strip i.done{background:var(--green)}
+.gn-node .strip i.current{background:var(--gold)}
+.gn-edge{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 8px;color:var(--faint)}
+.gn-edge .shape{font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-bottom:2px;white-space:nowrap}
+.gn-edge svg{display:block}
+
+/* phase sections */
+.phase{margin-bottom:38px}
+.phase-head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:16px;flex-wrap:wrap}
+.phase-head .tag{font-family:var(--mono);font-size:11px;color:var(--bg);background:var(--gold);border-radius:4px;padding:2px 8px;font-weight:600;letter-spacing:.06em}
+.phase-head h2{font-size:18px}
+.phase-head .meta{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-left:auto}
+.phase-goal{font-size:13.5px;color:var(--dim);margin:-8px 0 16px;max-width:70ch}
+
+/* evening card */
+.ev{border:1px solid var(--line);background:var(--panel);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.ev.done{border-color:rgba(70,192,104,.35)}
+.ev.done .ev-head .ev-id{color:var(--green)}
+.ev-head{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none}
+.ev-head:hover{background:var(--panel2)}
+.ev-id{font-family:var(--mono);font-size:12.5px;color:var(--gold);font-weight:600;min-width:52px}
+.ev-title{font-weight:600;font-size:14.5px;flex:1}
+.ev-badges{display:flex;gap:6px;align-items:center}
+.bdg{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-radius:3px;padding:2px 7px;border:1px solid var(--line2);color:var(--dim);white-space:nowrap}
+.bdg.theory{color:var(--blue);border-color:rgba(90,167,255,.4)}
+.bdg.code{color:var(--green);border-color:rgba(70,192,104,.4)}
+.bdg.mix{color:var(--purple);border-color:rgba(184,140,240,.4)}
+.bdg.milestone{color:var(--bg);background:var(--gold);border-color:var(--gold);font-weight:600}
+.bdg.gate{color:var(--red);border-color:rgba(239,83,80,.45)}
+.ev-chev{color:var(--faint);transition:transform .2s;font-size:12px}
+.ev.open .ev-chev{transform:rotate(90deg)}
+.ev-body{display:none;border-top:1px solid var(--line);padding:16px 18px 18px}
+.ev.open .ev-body{display:block}
+.ev-sec{margin-bottom:14px}
+.ev-sec:last-child{margin-bottom:0}
+.ev-sec h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.ev-sec.goal p{color:var(--text);font-size:14px}
+.terms{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.term{font-family:var(--mono);font-size:11.5px;color:var(--gold);background:rgba(240,168,50,.08);border:1px solid rgba(240,168,50,.25);border-radius:4px;padding:2px 8px}
+.ev-sec.theory p{font-size:13.5px;color:var(--dim)}
+.ev-sec.theory p b{color:var(--text)}
+.ev-sec.theory code{font-family:var(--mono);font-size:12px;color:var(--gold);background:var(--panel2);padding:1px 5px;border-radius:3px}
+.steps{list-style:none}
+.steps li{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.steps li:last-child{border-bottom:none}
+.steps input[type=checkbox]{appearance:none;width:16px;height:16px;border:1.5px solid var(--line2);border-radius:4px;background:var(--bg);cursor:pointer;flex-shrink:0;margin-top:2px;position:relative}
+.steps input[type=checkbox]:checked{background:var(--green);border-color:var(--green)}
+.steps input[type=checkbox]:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--bg);font-weight:700}
+.steps li.checked span{color:var(--faint);text-decoration:line-through}
+.steps code{font-family:var(--mono);font-size:12px;color:var(--gold);background:var(--panel2);padding:1px 5px;border-radius:3px}
+.donebox{border:1px solid rgba(70,192,104,.35);background:rgba(70,192,104,.06);border-radius:6px;padding:10px 12px;font-size:13.5px}
+.donebox b{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+.pitfall{border:1px solid rgba(239,83,80,.3);background:rgba(239,83,80,.05);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--dim);margin-top:10px}
+.pitfall b{color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+.lnk{list-style:none}
+.lnk li{padding:7px 0;border-bottom:1px dashed var(--line)}
+.lnk li:last-child{border-bottom:none}
+.lnk a{font-size:13.5px;font-weight:600}
+.lnk .lng{font-family:var(--mono);font-size:9.5px;color:var(--dim);border:1px solid var(--line2);border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+.lnk .lnote{font-size:12.5px;color:var(--dim);margin-top:2px}
+
+/* glossary */
+.glossary{border:1px solid var(--line);background:var(--panel);border-radius:10px;margin-bottom:30px;overflow:hidden}
+.glossary>summary{padding:14px 18px;cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;align-items:center;gap:10px}
+.glossary>summary::-webkit-details-marker{display:none}
+.glossary>summary .bdg{margin-left:auto}
+.gl-body{border-top:1px solid var(--line);padding:6px 18px 16px}
+.gl-item{padding:10px 0;border-bottom:1px dashed var(--line)}
+.gl-item:last-child{border-bottom:none}
+.gl-item dt{font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:600;margin-bottom:3px}
+.gl-item dd{font-size:13.5px;color:var(--dim)}
+.gl-item dd b{color:var(--text)}
+
+footer{text-align:center;font-family:var(--mono);font-size:11px;color:var(--faint);padding:20px;border-top:1px solid var(--line)}
+@media(max-width:560px){
+  .wrap{padding:18px 12px 70px}
+  .ev-head{flex-wrap:wrap}
+  .ev-title{flex-basis:100%;order:3}
+  .hdr-progress{width:100%;margin-left:0}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="gem"></div><span>Neuro<b>Reaper</b></span></div>
+  <div class="hdr-label">training course · 38 evenings</div>
+  <div class="hdr-progress"><div id="heatstrip" aria-hidden="true"></div><div class="pct" id="pct">0%</div></div>
+</header>
+<div class="wrap">
+
+<div class="intro">
+  <h1>От нуля до <em>отладчика расхождений</em> — по одному вечеру за раз</h1>
+  <p>Это курс-маршрут для сайд-проекта: 38 атомарных задач по 1,5–3 часа, пять фаз. Каждая фаза заканчивается работающим инструментом, а не «заделом на будущее». Теоретические вечера можно проходить на планшете в дороге — код в них не нужен.</p>
+  <p>Сквозная идея курса: сложность модели растёт только тогда, когда этого требует следующая фича отладчика. Сначала однослойная сеть, которую ты пересчитаешь на бумаге, — и только в конце resnet18.</p>
+  <div class="rules">
+    <b>Правила выживания сайд-проекта:</b> один вечер — одна задача, не начинай следующую в тот же вечер · вернувшись после паузы, перечитай «Критерий: готово» последней закрытой задачи · если задача не влезает в вечер — это баг плана, дроби её и иди дальше · фаза 2 заканчивается воротами валидации: покажи гифку людям до того, как строить дальше.
+  </div>
+</div>
+
+<nav class="graphnav" aria-label="Фазы курса"><div class="graphnav-inner" id="graphnav"></div></nav>
+
+<details class="glossary" id="glossary">
+  <summary>Глоссарий · ключевые термины курса <span class="bdg theory">справочник</span></summary>
+  <div class="gl-body" id="glbody"></div>
+</details>
+
+<div id="phases"></div>
+
+</div>
+<footer>neuro reaper · training course v1 · прогресс хранится локально в этом браузере</footer>
+<script>
+const PHASES = [
+{tag:"PHASE 0", name:"foundation", title:"Фундамент: термины и hello-world модель", evenings:"6 вечеров", out:"model.onnx",
+ goal:"Понять, что такое тензор и форвард-пасс, поднять окружение и получить собственную крошечную обученную модель в ONNX. Всё, что дальше делает отладчик, ты сначала посчитаешь руками.",
+ items:[
+ {id:"EV-01", t:"Тензоры, веса и нейрон на бумаге", type:"theory", time:"~1.5 ч",
+  goal:"Свободно читать запись вида 1×3×224×224 и понимать, что физически хранится в модели.",
+  terms:["тензор","shape","dtype","веса (weights)","bias","параметры"],
+  theory:"<b>Тензор</b> — просто многомерный массив чисел; <b>shape</b> — его размеры по осям (вектор из 10 чисел → shape <code>[10]</code>, батч картинок → <code>[N,C,H,W]</code>). <b>Нейрон</b> — это взвешенная сумма входов плюс сдвиг: <code>y = w·x + b</code>. Слой из M нейронов на N входов — это матрица весов <code>M×N</code> и вектор bias <code>M</code>. Модель = набор таких тензоров-параметров и порядок операций над ними.",
+  steps:["Прочитай про тензоры и shape (любой вводный материал по PyTorch tensors, раздел basics)","Выпиши на бумаге слой из 2 нейронов на 3 входа: матрица W (2×3), bias b (2) — придумай числа сам","Посчитай руками выход для входа x = [1, 0, 2]","Запиши, какой shape будет у входа-картинки 28×28 в градациях серого с батчем 1 и почему"],
+  links:[
+   {t:"PyTorch: Tensors (Learn the Basics)",u:"https://docs.pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html",l:"EN",n:"Официальный туториал по тензорам: создание, shape, dtype — можно просто читать, без запуска кода."},
+   {t:"3Blue1Brown: But what is a Neural Network?",u:"https://www.3blue1brown.com/lessons/neural-networks",l:"EN",n:"Лучшее визуальное объяснение нейрона, весов и bias на примере распознавания цифр (видео + текст)."},
+   {t:"Учебник ШАД: нейронные сети",u:"https://education.yandex.ru/handbook/ml/article/nejronnye-seti",l:"RU",n:"Русскоязычное введение в нейросети из хендбука ШАД Яндекса."}],
+  done:"Можешь без подсказки объяснить, что значит каждая цифра в shape 1×3×224×224 и сколько чисел хранит Linear-слой 784→10 (ответ: 784·10 + 10 = 7850).",
+  pitfall:"Не углубляйся в обучение и градиенты — для отладчика инференса они не нужны. Если потянуло читать про backpropagation, остановись: это другая профессия."},
+ {id:"EV-02", t:"Форвард-пасс руками: matmul, ReLU, softmax", type:"theory", time:"~2 ч",
+  goal:"Один раз полностью прогнать сеть на бумаге — это твой будущий ground truth для отладчика.",
+  terms:["forward pass","активация","ReLU","softmax","logits"],
+  theory:"<b>Форвард-пасс</b> — последовательное применение слоёв: matmul → плюс bias → <b>активация</b>. <b>ReLU</b> — это просто <code>max(0, x)</code> поэлементно. <b>Softmax</b> превращает сырые выходы (<b>logits</b>) в вероятности: <code>exp(xi)/Σexp(xj)</code>. Промежуточный результат после каждого слоя — «тензор активаций»; именно их твой отладчик будет вытаскивать и показывать.",
+  steps:["Возьми сеть: вход 3 → Linear(3→2) → ReLU → Linear(2→2) → softmax, веса придумай маленькие целые","Посчитай на бумаге все промежуточные тензоры для одного входа","Сфотографируй/сохрани листок — это эталон для EV-12","Объясни сам себе, почему ReLU «гасит» отрицательные значения и что это значит для гистограммы активаций"],
+  links:[
+   {t:"Jay Alammar: Visual & Interactive NN Math",u:"https://jalammar.github.io/feedforward-neural-networks-visual-interactive/",l:"EN",n:"Пошаговый визуальный разбор forward pass: w·x+b и активации, с интерактивными примерами."},
+   {t:"Victor Zhou: A Simple Explanation of Softmax",u:"https://victorzhou.com/blog/softmax/",l:"EN",n:"Короткое объяснение softmax с числовым примером и заметкой о численной стабильности."},
+   {t:"PyTorch: Build the Neural Network",u:"https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html",l:"EN",n:"Официальный разбор nn.Linear / ReLU / Softmax слой за слоем — что происходит с тензором на каждом шаге."}],
+  done:"На листке — полный расчёт сети с подписанными промежуточными тензорами. Ты понимаешь фразу «активации после второго слоя».",
+  pitfall:"Числа бери маленькие (0–2), иначе утонешь в арифметике. Цель — структура вычисления, не точность."},
+ {id:"EV-03", t:"Окружение: Python-сторона и C#-сторона", type:"code", time:"~2 ч",
+  goal:"Обе половины проекта запускаются: Python для обучения/экспорта, C#/.NET для будущего отладчика.",
+  terms:["PyTorch","onnxruntime","NuGet Microsoft.ML.OnnxRuntime"],
+  theory:"Архитектура курса: Python-скрипты — расходный материал (обучить, экспортировать, квантовать), C#-приложение — настоящий артефакт. Граница между ними — ONNX-файл. Поэтому окружения два, и оба минимальные.",
+  steps:["Python: <code>pip install torch torchvision onnx onnxruntime numpy</code> (CPU-сборки достаточно)","Проверь: <code>python -c \"import torch, onnxruntime; print(torch.__version__, onnxruntime.__version__)\"</code>","C#: создай консольный проект, добавь NuGet <code>Microsoft.ML.OnnxRuntime</code>","Проверь сборку: выведи <code>OrtEnv.Instance()</code> и список доступных провайдеров <code>OrtEnv.Instance().GetAvailableProviders()</code>","Закоммить пустой репозиторий с двумя папками: /python и /app"],
+  links:[
+   {t:"PyTorch: Get Started Locally",u:"https://pytorch.org/get-started/locally/",l:"EN",n:"Официальный селектор установки; выбирай Compute Platform: CPU."},
+   {t:"ONNX Runtime: Get started with C#",u:"https://onnxruntime.ai/docs/get-started/with-csharp.html",l:"EN",n:"Официальный гайд: NuGet-пакет, InferenceSession, первые тензоры."},
+   {t:"NuGet: Microsoft.ML.OnnxRuntime",u:"https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime",l:"EN",n:"Страница пакета: актуальная версия и поддерживаемые платформы."},
+   {t:"ORT C# API Reference",u:"https://onnxruntime.ai/docs/api/csharp/api",l:"EN",n:"Справочник API — настольная шпаргалка на весь курс."}],
+  done:"Обе команды-проверки печатают версии без ошибок. Репозиторий создан.",
+  pitfall:"Не ставь CUDA-сборки и не настраивай GPU сегодня — CPU хватит до фазы 3, а возня с драйверами съест вечер."},
+ {id:"EV-04", t:"Обучить крошечную модель на MNIST", type:"code", time:"~2 ч",
+  goal:"Получить СВОЮ модель: один Linear-слой 784→10, точность ~92%. Качество не важно — важно, что ты знаешь про неё всё.",
+  terms:["MNIST","эпоха","batch","точность (accuracy)"],
+  theory:"MNIST — 70k картинок рукописных цифр 28×28. Однослойная сеть <code>Flatten → Linear(784→10)</code> даёт ~92% — для нас этого достаточно навсегда. Помни вектор курса: ты ML-инженер (инференс), а не дата-сайентист (обучение). Обучение здесь — только способ получить не-случайные осмысленные веса.",
+  steps:["Скопируй базовый пример обучения MNIST из туториала PyTorch, упрости модель до одного Linear","Обучи 2–3 эпохи, добейся точности выше 90% на тесте","Сохрани веса: <code>torch.save(model.state_dict(), 'mnist_linear.pt')</code>","Выведи и запиши W.shape и b.shape — сверь с расчётом из EV-01"],
+  links:[
+   {t:"PyTorch Quickstart",u:"https://docs.pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html",l:"EN",n:"Сквозной официальный пример: DataLoader, модель, цикл обучения, сохранение весов."},
+   {t:"pytorch/examples: MNIST",u:"https://github.com/pytorch/examples/tree/main/mnist",l:"EN",n:"Канонический MNIST-пример — упрости его модель до одного Linear."},
+   {t:"3Blue1Brown: Gradient Descent",u:"https://www.3blue1brown.com/lessons/gradient-descent",l:"EN",n:"Визуальная интуиция того, что делает optimizer.step() — ровно в объёме, нужном курсу."}],
+  done:"Файл mnist_linear.pt сохранён, точность ≥90% записана в README.",
+  pitfall:"Не пытайся улучшить точность — 92% и 99% для отладчика неразличимы. Любая минута тюнинга гиперпараметров — потраченная зря."},
+ {id:"EV-05", t:"Что такое ONNX: граф, ноды, инициализаторы", type:"theory", time:"~1.5 ч",
+  goal:"Понимать устройство файла, который твой отладчик будет читать всю жизнь.",
+  terms:["ONNX","граф (GraphProto)","нода / оператор","инициализатор","opset","protobuf"],
+  theory:"<b>ONNX</b> — формат-посредник: вычислительный <b>граф</b>, где <b>ноды</b> — операторы (MatMul, Relu, Conv…), рёбра — тензоры, а <b>инициализаторы</b> — вшитые тензоры-константы (веса). <b>Opset</b> — версия словаря операторов. Физически это <b>protobuf</b>-файл. Ключевая мысль для отладчика: у каждого тензора-ребра есть имя, и по имени его можно запросить наружу.",
+  steps:["Прочитай вводную «ONNX concepts» с onnx.ai (граф, операторы, opset)","Открой netron.app в браузере планшета и загрузи любую публичную ONNX-модель (или свою после EV-06)","Найди в Netron: входы, выходы, первый MatMul, его инициализаторы — посмотри их shape","Выпиши своими словами разницу между нодой, тензором-ребром и инициализатором"],
+  links:[
+   {t:"ONNX Concepts",u:"https://onnx.ai/onnx/intro/concepts.html",l:"EN",n:"Официальная вводная: граф, ноды-операторы, инициализаторы, атрибуты, opset, protobuf."},
+   {t:"ONNX IR Specification",u:"https://onnx.ai/onnx/repo-docs/IR.html",l:"EN",n:"Нормативная спецификация ModelProto/GraphProto/NodeProto — фундамент будущего парсера."},
+   {t:"Netron",u:"https://netron.app",l:"EN",n:"Браузерный визуализатор ONNX — работает прямо с планшета."}],
+  done:"Глядя на граф в Netron, можешь для любой ноды сказать: что входит, что выходит, где её веса.",
+  pitfall:"Netron — это «смотрелка», твой инструмент будет «запускалкой». Отмечай по ходу, чего тебе в Netron не хватает — это бэклог твоих фич."},
+ {id:"EV-06", t:"Экспорт в ONNX и первый прогон в ORT", type:"code", time:"~2 ч",
+  goal:"Модель из EV-04 превращена в model.onnx, и ONNX Runtime выдаёт те же ответы, что PyTorch.",
+  terms:["torch.onnx.export","InferenceSession","input/output names"],
+  theory:"Экспорт трассирует форвард-пасс и записывает его как граф. С этого момента PyTorch больше не нужен для инференса: <code>onnxruntime.InferenceSession</code> читает файл и считает. Сверка «PyTorch vs ORT на одном входе» — твой первый тест на эквивалентность бэкендов, тема всего проекта.",
+  steps:["Экспортируй: <code>torch.onnx.export(model, dummy_input, 'mnist_linear.onnx', input_names=['input'], output_names=['logits'])</code>","Открой файл в Netron — найди свой Gemm/MatMul и инициализаторы","В Python: прогони один и тот же тензор через PyTorch и через InferenceSession","Сравни выходы поэлементно (np.allclose с atol=1e-5) — задокументируй результат"],
+  links:[
+   {t:"PyTorch: Export to ONNX + run with ORT",u:"https://docs.pytorch.org/tutorials/beginner/onnx/export_simple_model_to_onnx_tutorial.html",l:"EN",n:"Официальный туториал: экспорт, просмотр в Netron, сверка выходов с ORT — ровно план этого вечера."},
+   {t:"torch.onnx (документация)",u:"https://docs.pytorch.org/docs/stable/onnx.html",l:"EN",n:"Актуально на 2026: dynamo=True — рекомендуемый экспортер, TorchScript-путь — легаси."},
+   {t:"ONNX Runtime: Get started with Python",u:"https://onnxruntime.ai/docs/get-started/with-python.html",l:"EN",n:"Python-квикстарт ORT: InferenceSession и инференс экспортированной модели."}],
+  done:"model.onnx в репозитории; скрипт сверки печатает max abs diff между PyTorch и ORT (порядка 1e-6).",
+  pitfall:"Если выходы «почти» совпадают (1e-6) — это норма для float32, а не баг. Запомни это ощущение: нулевого расхождения не бывает почти никогда."}
+]},
+{tag:"PHASE 1", name:"probe_core", title:"Ядро: вытащить тензоры наружу (C#)", evenings:"8 вечеров", out:"мини-вьюер",
+ goal:"Сердце отладчика: C#-приложение грузит ONNX, исполняет его и достаёт промежуточные активации любой ноды. В конце фазы — «Netron, который запускает модель», проверенный против бумажного расчёта.",
+ items:[
+ {id:"EV-07", t:"C#: загрузить модель и получить предсказание", type:"code", time:"~2 ч",
+  goal:"Консольное C#-приложение делает инференс mnist_linear.onnx.",
+  terms:["SessionOptions","NamedOnnxValue","DenseTensor"],
+  theory:"C#-API зеркалит питоновский: <code>InferenceSession</code> → подать словарь входов → получить выходы. Тензоры — <code>DenseTensor&lt;float&gt;</code>. Это единственная новая «магия» вечера, остальное — обычный C#.",
+  steps:["В /app: загрузка mnist_linear.onnx через new InferenceSession(path)","Подай фиксированный массив 784 float (хоть все 0.5f) как input","Достань logits, выведи argmax","Сверь с тем же входом в Python-ORT — числа должны совпасть до 1e-6"],
+  links:[
+   {t:"ONNX Runtime: Get started with C#",u:"https://onnxruntime.ai/docs/get-started/with-csharp.html",l:"EN",n:"Базовые паттерны: создание сессии, подача входов, чтение выходов."},
+   {t:"Туториал: ResNet50 v2 на C#",u:"https://onnxruntime.ai/docs/tutorials/csharp/resnet50_csharp.html",l:"EN",n:"Пошаговый официальный пример: DenseTensor, Run(), softmax — тот же сценарий, что у тебя."},
+   {t:"InferenceSession: C# API Reference",u:"https://onnxruntime.ai/docs/api/csharp/api/Microsoft.ML.OnnxRuntime.InferenceSession.html",l:"EN",n:"Все перегрузки Run(), InputMetadata/OutputMetadata."}],
+  done:"dotnet run печатает 10 логитов и top-1 класс, совпадающие с Python.",
+  pitfall:"Следи за порядком осей и тем, что вход [1,784], а не [784] — несовпадение shape это 90% ошибок первого вечера."},
+ {id:"EV-08", t:"Прочитать граф из C#: ноды и рёбра", type:"code", time:"~2.5 ч",
+  goal:"Приложение печатает структуру графа — список нод с их входами/выходами. Это модель данных будущего UI.",
+  terms:["ModelProto","NodeProto","ValueInfo","протобуф-схема ONNX"],
+  theory:"ONNX-файл можно разобрать без исполнения: это protobuf со схемой onnx.proto. Из C# проще всего взять пакет <code>Onnx.Protobuf</code> / сгенерировать классы из onnx.proto, либо распарсить через Microsoft.ML.OnnxRuntime метаданные сессии (имена входов/выходов). Для полного графа нужен именно protobuf-парс.",
+  steps:["Подключи protobuf-разбор onnx (готовый NuGet или protoc по onnx.proto)","Выведи: имя ноды, op_type, inputs[], outputs[] для каждой ноды","Собери из этого структуру Graph {Nodes, Edges} в своих классах","Прогони на mnist_linear.onnx: должно быть 2–4 ноды (Gemm/MatMul, может Flatten)"],
+  links:[
+   {t:"onnx.proto (схема формата)",u:"https://github.com/onnx/onnx/blob/main/onnx/onnx.proto",l:"EN",n:"Первоисточник: protobuf-схема ModelProto/GraphProto/NodeProto."},
+   {t:"Protocol Buffer Basics: C#",u:"https://protobuf.dev/getting-started/csharptutorial/",l:"EN",n:"Официальный туториал Google.Protobuf: генерация классов из .proto и парсинг."},
+   {t:"OnnxSharp",u:"https://github.com/nietras/OnnxSharp",l:"EN",n:"Готовый NuGet со сгенерированными protobuf-классами ONNX — ModelProto.Parser.ParseFromFile из коробки."}],
+  done:"Команда dump-graph печатает все ноды с рёбрами; своя структура Graph заполнена.",
+  pitfall:"Не строй UI сегодня. Текстовый дамп — достаточный интерфейс для проверки модели данных."},
+ {id:"EV-09", t:"Щупы: промежуточные тензоры наружу", type:"code", time:"~2.5 ч",
+  goal:"Ключевая техника всего инструмента: пометить внутренние тензоры как выходы графа и получить их значения.",
+  terms:["graph outputs","техника Polygraphy","ValueInfoProto"],
+  theory:"ORT отдаёт только тензоры, объявленные выходами графа. Трюк (его использует и Polygraphy): программно добавить имена промежуточных рёбер в <code>graph.output</code> и пересоздать сессию — теперь Run() возвращает и их. Это «щуп» в его простейшей форме.",
+  steps:["Напиши функцию: по имени тензора-ребра добавить его в outputs модифицированной копии модели","Перезагрузи сессию из модифицированных байтов (в память, без записи на диск)","Запроси выход первого слоя (после MatMul, до softmax если есть)","Выведи shape и первые 10 значений полученного тензора"],
+  links:[
+   {t:"Polygraphy: How to Debug Accuracy",u:"https://github.com/NVIDIA/TensorRT/blob/main/tools/Polygraphy/how-to/debug_accuracy.md",l:"EN",n:"Как NVIDIA отлаживает точность: пометить промежуточные тензоры как outputs и сравнивать послойно."},
+   {t:"sklearn-onnx: intermediate outputs",u:"https://onnx.ai/sklearn-onnx/auto_examples/plot_intermediate_outputs.html",l:"EN",n:"Рабочий пример модификации графа: добавление промежуточных тензоров в outputs."},
+   {t:"onnxruntime issue #1455",u:"https://github.com/microsoft/onnxruntime/issues/1455",l:"EN",n:"Каноническое обсуждение «как достать тензор среднего слоя» с рецептом через graph.output."},
+   {t:"onnx.shape_inference",u:"https://onnx.ai/onnx/api/shape_inference.html",l:"EN",n:"infer_shapes заполняет value_info промежуточных тензоров — пригодится для щупов."}],
+  done:"Метод GetIntermediateTensor(modelPath, tensorName) возвращает значения любого ребра графа.",
+  pitfall:"Для промежуточных рёбер может не быть ValueInfo с типом/shape — добавляй output без них или прогони shape inference (onnx.shape_inference) на этапе экспорта."},
+ {id:"EV-10", t:"Верификация против бумаги: фикстура-тест", type:"mix", time:"~2 ч",
+  goal:"Доказать, что щупы не врут: активации из EV-09 совпадают с расчётом из EV-02.",
+  terms:["ground truth","фикстура","регрессионный тест"],
+  theory:"Крошечная модель — твой регрессионный тест навсегда. Она разводит два типа ошибок: «инструмент посчитал не то» (баг кода) и «я не понимаю, почему значение такое» (пробел в знании). На resnet18 их различить невозможно, на 3-нейронной сети — тривиально.",
+  steps:["Собери в Python вручную ONNX-модель с весами из твоего бумажного расчёта EV-02 (через onnx.helper или экспорт из torch с заданными весами)","Прогони её в своём C#-ядре, сними все промежуточные тензоры","Сверь каждое значение с листком — расхождение должно быть ~1e-7","Оформи это как юнит-тест в проекте: он запускается одной командой и навсегда охраняет ядро"],
+  links:[
+   {t:"onnx.helper API",u:"https://onnx.ai/onnx/api/helper.html",l:"EN",n:"Справочник make_node/make_graph/make_model для ручной сборки модели с твоими весами."},
+   {t:"ONNX with Python",u:"https://onnx.ai/onnx/intro/python.html",l:"EN",n:"Официальный разбор сборки модели с нуля: линейная регрессия из make_node + check_model."}],
+  done:"Тест paper_model_test зелёный; в README — строчка «ядро верифицировано против ручного расчёта».",
+  pitfall:"Если числа не сходятся — сначала проверь порядок матричного умножения (x·Wᵀ vs W·x) и broadcast bias, это классика."},
+ {id:"EV-11", t:"Первый UI: окно со списком нод", type:"code", time:"~2.5 ч",
+  goal:"Минимальное окно (выбранный тобой UI-стек): открыть файл, список нод, клик — пока просто имя и shape.",
+  terms:["MVU/MVVM","view-model графа"],
+  theory:"Сегодня решается стек UI (Blazor Hybrid/Photino, Avalonia — что тебе ближе). Решение фиксируем и больше не пересматриваем до v1: смена UI-стека — главный убийца сайд-проектов. UI — тонкий слой над ядром из EV-07–10, никакой логики в нём.",
+  steps:["Подними каркас выбранного UI-стека в /app","Кнопка «Open ONNX» → файл-диалог → ядро парсит граф","Список нод (имя, op_type) из своей структуры Graph","Клик по ноде → панель с именами входов/выходов и их shape (из shape inference)"],
+  links:[
+   {t:"Avalonia UI: Get Started",u:"https://docs.avaloniaui.net/docs/get-started/",l:"EN",n:"Кандидат №1: кроссплатформенный XAML-стек, шаблоны и первый проект."},
+   {t:"Blazor Hybrid (обзор)",u:"https://learn.microsoft.com/en-us/aspnet/core/blazor/hybrid/",l:"EN",n:"Кандидат №2: web-UI в нативном окне через BlazorWebView."},
+   {t:"Photino",u:"https://www.tryphotino.io/",l:"EN",n:"Кандидат №3: лёгкий нативный WebView без браузерного рантайма."}],
+  done:"Окно показывает граф mnist_linear.onnx списком; клик выводит метаданные ноды.",
+  pitfall:"Никакой отрисовки графа стрелочками сегодня. Список — достаточная визуализация до фазы 4."},
+ {id:"EV-12", t:"Инспектор тензора: статистика", type:"code", time:"~2 ч",
+  goal:"Клик по ноде показывает живые числа её выходного тензора: min / max / mean / std.",
+  terms:["агрегаты тензора","инспектор"],
+  theory:"Это первый момент, когда твой инструмент делает то, чего не умеет Netron: показывает не структуру, а ЗНАЧЕНИЯ на реальном входе. Статистики — самый дешёвый и самый информативный вид: по одному mean/std уже видно мёртвый слой или взрыв активаций.",
+  steps:["По клику на ноду — вызов GetIntermediateTensor для её выхода","Посчитай min/max/mean/std (одним проходом, на C#)","Выведи в панель инспектора моноширинным шрифтом","Проверь на бумажной модели: статистики должны совпасть с листком"],
+  links:[
+   {t:"Welford's online algorithm",u:"https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance",l:"EN",n:"Численно устойчивый однопроходный расчёт mean/variance — раздел «Welford's online algorithm»."},
+   {t:"John D. Cook: running variance",u:"https://www.johndcook.com/blog/standard_deviation/",l:"EN",n:"Почему наивная формула ломается на float, и класс RunningStat (легко переносится на C#)."}],
+  done:"Для любой ноды по клику видны 4 статистики, у бумажной модели они верны.",
+  pitfall:"Кэшируй результаты Run() по входу: пересоздавать сессию на каждый клик — секунды задержки даже на MNIST."},
+ {id:"EV-13", t:"Гистограмма значений тензора", type:"code", time:"~2 ч",
+  goal:"К статистикам добавить распределение: маленькая гистограмма значений тензора в инспекторе.",
+  terms:["гистограмма","бины","распределение активаций"],
+  theory:"Гистограмма — главный инструмент будущей главы про квантизацию: вся идея INT8 в том, чтобы уложить вот это распределение в 256 уровней. Посмотри уже сейчас, как ReLU обрубает левую половину распределения — это видно глазами.",
+  steps:["Функция: тензор → 32–64 бина → массив высот","Отрисуй барами (canvas/SVG/нативно — по стеку)","Прогони на модели с ReLU: убедись, что слева характерный пик в нуле","Подпиши под гистограммой min и max"],
+  links:[
+   {t:"Histogram: выбор числа бинов",u:"https://en.wikipedia.org/wiki/Histogram",l:"EN",n:"Правила Стёрджеса, Скотта, Freedman–Diaconis — чем руководствоваться при 32–64 бинах."},
+   {t:"A Visual Guide to Quantization",u:"https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization",l:"EN",n:"50+ иллюстраций: распределения активаций, клиппинг, калибровка — мотивация всей гистограммы."}],
+  done:"Инспектор показывает гистограмму; на ReLU-слое виден пик в нуле и ты понимаешь почему.",
+  pitfall:"NaN/Inf в тензоре сломают бины — отфильтруй и показывай их счётчик отдельно (это, кстати, готовый детектор проблем)."},
+ {id:"EV-14", t:"Картинка на входе: препроцессинг и милстоун", type:"mix", time:"~2.5 ч",
+  goal:"Открыть PNG с цифрой, правильно подготовить и получить предсказание. Фаза закрыта: «Netron, который запускает».",
+  terms:["нормализация","NCHW","center-crop","препроцессинг"],
+  theory:"Препроцессинг — где живёт половина реальных багов деплоя: картинка 0–255 → float 0–1 (или mean/std нормализация), HWC → CHW, resize/crop. Модель молча выдаст мусор при любой ошибке — без исключений. Твой отладчик потом будет ловить именно такие случаи, так что прочувствуй это руками.",
+  steps:["Загрузка PNG 28×28, перевод в float-тензор с той же нормализацией, что при обучении","Прогон через ядро, вывод top-1 и уверенности в UI","Нарисуй от руки цифру, прогони — поиграйся с неправильной нормализацией и посмотри, как едет предсказание","Зафиксируй милстоун: тег v0.1 в репозитории, скриншот в README"],
+  links:[
+   {t:"ResNet50 C#: препроцессинг",u:"https://onnxruntime.ai/docs/tutorials/csharp/resnet50_csharp.html",l:"EN",n:"Официальный C#-пример: ImageSharp + resize + нормализация mean/std в DenseTensor."},
+   {t:"ONNX Model Zoo: карточка ResNet",u:"https://github.com/onnx/models/tree/main/validated/vision/classification/resnet",l:"EN",n:"Эталонная спецификация препроцессинга: NCHW, точные mean/std, HWC→CHW."},
+   {t:"ImageSharp: Getting Started",u:"https://docs.sixlabors.com/articles/imagesharp/gettingstarted.html",l:"EN",n:"Загрузка PNG, resize, доступ к пикселям в .NET."}],
+  done:"Открыл картинку → увидел предсказание → кликнул ноду → увидел её активации и гистограмму. Тег v0.1 стоит.",
+  pitfall:"MNIST обучен на белых цифрах на чёрном фоне — перевёрнутая полярность картинки даст уверенный мусор. Отличный первый «баг» для пристрелки."}
+]},
+{tag:"PHASE 2", name:"divergence", title:"Квантизация и дивергенция — твой wedge", evenings:"8 вечеров", out:"diff-вид + гифка",
+ goal:"Главная глава. INT8-квантизация руками и инструментом, сравнение fp32 vs int8 по каждой ноде, тепловая карта расхождений. Фаза заканчивается воротами валидации: гифка наружу.",
+ items:[
+ {id:"EV-15", t:"Квантизация на бумаге: scale и zero-point", type:"theory", time:"~2 ч",
+  goal:"Понять формулу INT8 настолько, чтобы проквантовать 4 числа руками.",
+  terms:["INT8","scale","zero-point","квантизация","деквантизация","клиппинг"],
+  theory:"Квантизация — отображение диапазона float в 256 целых уровней: <code>q = round(x/scale) + zero_point</code>, обратно <code>x ≈ (q − zero_point)·scale</code>. <b>Scale</b> — цена одного шага, <b>zero-point</b> — какой int соответствует нулю. Ошибка округления на каждом слое и есть источник дивергенции, которую покажет твой инструмент.",
+  steps:["Прочитай введение в квантизацию (документация ORT quantization, раздел concepts)","Возьми числа [-1.4, 0.0, 0.37, 2.5]: подбери scale/zero-point под диапазон, проквантуй и деквантуй руками","Посчитай ошибку восстановления каждого числа — это «цена» INT8","Ответь себе: почему выброс-одиночка в тензоре портит точность всем остальным значениям (намёк: он растягивает scale)"],
+  links:[
+   {t:"ORT: Quantize ONNX Models",u:"https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html",l:"EN",n:"Базовый документ фазы: формула scale/zero-point, симметричная и асимметричная схемы, QDQ vs QOperator."},
+   {t:"Lei Mao: Quantization for Neural Networks",u:"https://leimao.github.io/article/Neural-Networks-Quantization/",l:"EN",n:"Классический разбор математики: вывод scale и zero-point, квантованный matmul, с кодом."},
+   {t:"HF Optimum: Quantization (concepts)",u:"https://huggingface.co/docs/optimum/concept_guides/quantization",l:"EN",n:"То же простым языком: affine/symmetric, per-tensor vs per-channel, виды калибровки."}],
+  done:"На листке — ручная квантизация 4 чисел с ошибками восстановления. Термины scale/zero-point — твои.",
+  pitfall:"Симметричная vs асимметричная схема и per-channel — пока пропусти, хватит per-tensor асимметричной. Вернёшься, когда инструмент покажет, где её не хватает."},
+ {id:"EV-16", t:"Проквантовать модель инструментом ORT", type:"code", time:"~2 ч",
+  goal:"Получить mnist_linear.int8.onnx и понять, что изменилось в графе.",
+  terms:["static vs dynamic quantization","калибровка","QDQ-формат"],
+  theory:"<b>Динамическая</b> квантизация считает scale активаций на лету, <b>статическая</b> — заранее по калибровочным данным (и она — путь NPU). В графе появятся ноды QuantizeLinear/DequantizeLinear (<b>QDQ</b>) — посмотри на них в Netron и в своём вьюере: граф «оброс» служебными операциями.",
+  steps:["Python: <code>onnxruntime.quantization.quantize_static</code> на своей модели с калибровкой из 100 картинок MNIST (или quantize_dynamic для первого раза)","Открой int8-модель в Netron: найди QDQ-ноды, посмотри scale/zero-point в их инициализаторах","Открой её же своим вьюером — парсер не должен упасть на новых op_type","Сравни размер файлов fp32 vs int8"],
+  links:[
+   {t:"ORT Quantization: разделы про API",u:"https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html",l:"EN",n:"Тот же документ, теперь разделы quantize_static/quantize_dynamic, CalibrationDataReader, pre-processing."},
+   {t:"Пример: квантизация image classification",u:"https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md",l:"EN",n:"Официальный рабочий пример quantize_static с калибровкой — образец для твоего скрипта."},
+   {t:"Оператор QuantizeLinear",u:"https://onnx.ai/onnx/operators/onnx__QuantizeLinear.html",l:"EN",n:"Спецификация ноды, которую ORT вставляет в граф при QDQ-квантизации."}],
+  done:"int8-модель в репо, открывается твоим вьюером, ты можешь показать пальцем её scale и zero-point.",
+  pitfall:"Точность int8-модели на MNIST почти не просядет — не жди драмы на однослойке. Драма появится на CNN, тут важен механизм."},
+ {id:"EV-17", t:"Двойной прогон: собрать тензоры обеих моделей", type:"code", time:"~2 ч",
+  goal:"Ядро умеет прогнать fp32 и int8 модели на одном входе и снять активации с обеих.",
+  terms:["reference vs candidate","сопоставление тензоров"],
+  theory:"Появляется главная абстракция продукта: <b>reference</b> (эталон) и <b>candidate</b> (кандидат). Уже сейчас оформи кандидата как конфиг {modelPath, precision, provider} — позже это бесплатно расширится на EP и устройства. Тонкость: имена тензоров в int8-графе слегка другие (QDQ-вставки) — нужен маппинг «смысловая точка → имя в каждом графе».",
+  steps:["Класс RunConfig {Model, Provider} и метод RunAll(config, input) → словарь имя→тензор","Прогони обе модели на одной картинке","Построй сопоставление точек сравнения (выходы «настоящих» слоёв, минуя QDQ-обвязку)","Выведи пары тензоров рядом в консоль для одного слоя"],
+  links:[
+   {t:"NVIDIA Polygraphy",u:"https://github.com/NVIDIA/TensorRT/tree/main/tools/Polygraphy",l:"EN",n:"Концептуальный прототип твоего инструмента: прогон на нескольких бэкендах и сравнение результатов."},
+   {t:"run_qdq_debug.py (ORT examples)",u:"https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/run_qdq_debug.py",l:"EN",n:"Готовый скрипт qdq_loss_debug: create_activation_matching — сопоставление тензоров fp32 и QDQ-графа."}],
+  done:"Один вызов возвращает два словаря активаций с согласованными ключами.",
+  pitfall:"Не сравнивай выход QuantizeLinear с float-тензором напрямую — сравнивать нужно точки после деквантизации, иначе получишь бессмысленные гигантские диффы."},
+ {id:"EV-18", t:"Метрики расхождения: diff правильно", type:"mix", time:"~2 ч",
+  goal:"Посчитать max abs diff, mean abs diff и cosine similarity между парами тензоров — с деквантизацией перед сравнением.",
+  terms:["max abs diff","cosine similarity","деквантизация перед сравнением"],
+  theory:"<b>Max abs</b> ловит худший выброс, <b>mean abs</b> — общий дрейф, <b>cosine</b> — сохранилось ли «направление» тензора (форма паттерна). Правило, которое отличает твой инструмент от наивного: int8-значения деквантуются в float ДО сравнения. Сравнивать сырые int с float — бессмыслица.",
+  steps:["Функции diff-метрик для пары тензоров (выровняй shape, проверь поэлементное соответствие)","Прогони по всем сопоставленным точкам из EV-17","Выведи таблицу: слой → три метрики","Проверь на фикстуре EV-10: fp32 против самой себя даёт строгий ноль"],
+  links:[
+   {t:"AIMET: QuantAnalyzer",u:"https://quic.github.io/aimet-pages/releases/1.33.5/user_guide/quant_analyzer.html",l:"EN",n:"Как Qualcomm ищет «горячие» слои: per-layer метрики, гистограммы, min-max диапазоны."},
+   {t:"SQNR как метрика сравнения тензоров",u:"https://karam-nus.github.io/metrics/docs/metrics/tensor-comparison/sqnr",l:"EN",n:"Формула SQNR в децибелах; рядом в разделе — cosine similarity как комплементарная метрика."},
+   {t:"MACE: How to Debug",u:"https://mace.readthedocs.io/en/latest/development/how_to_debug.html",l:"EN",n:"Практика mobile-фреймворка: cosine similarity и SQNR против эталона."}],
+  done:"Таблица расхождений по слоям печатается; self-diff равен нулю (это тест).",
+  pitfall:"Cosine на тензоре с почти нулевыми значениями взрывается — обрабатывай малые нормы отдельно (показывай n/a)."},
+ {id:"EV-19", t:"Тепловая карта Δ на списке нод", type:"code", time:"~2 ч",
+  goal:"UI раскрашивает ноды по величине расхождения: зелёный → жёлтый → красный. Wedge становится видимым.",
+  terms:["divergence heatmap","нормировка шкалы"],
+  theory:"Цвет — по max abs diff ноды, шкала нормируется на максимум по модели (или фикс-порог пользователя). Это тот самый экран из твоих мокапов, только на живых данных. С этого вечера инструмент отвечает на вопрос «ГДЕ разъехалось» с одного взгляда.",
+  steps:["Раскрась элементы списка нод по Δ (фон/полоска слева)","Покажи численный Δ рядом с каждой нодой моноширинно","Сводка сверху: worst Δ @ имя-ноды","Скриншот в README"],
+  links:[
+   {t:"Matplotlib: Choosing Colormaps",u:"https://matplotlib.org/stable/users/explain/colors/colormaps.html",l:"EN",n:"Перцептивно равномерные палитры (viridis/magma) и почему это важно для теплокарт."}],
+  done:"Открыл две модели → список нод светится теплокартой → видно худшую ноду.",
+  pitfall:"Линейная шкала убьёт контраст (одна красная нода, всё остальное неразличимо зелёное) — попробуй лог-шкалу или перцентили."},
+ {id:"EV-20", t:"Side-by-side тензоров и |Δ|-карта", type:"code", time:"~2.5 ч",
+  goal:"В инспекторе: эталонный тензор, кандидатный и карта поэлементного |Δ| рядом — как в твоём прототипе.",
+  terms:["хитмап тензора","colormap","diff-карта"],
+  theory:"Числовые метрики говорят «насколько», картинка — «как именно»: равномерный шум квантизации выглядит совсем иначе, чем структурная ошибка (полосы, пятна). Для 1D-тензора рисуй полосу, для 2D — хитмап; colormap бери перцептивную (viridis/magma-подобную).",
+  steps:["Рендер 2D-хитмапа тензора (canvas/битмап, ближайший сосед, без сглаживания)","Три панели: REF / CAND / |Δ|, общая цветовая шкала у первых двух","Подпиши под |Δ| метрики из EV-18","Прогони на самом расходящемся слое — посмотри на характер ошибки"],
+  links:[
+   {t:"BIDS: история viridis",u:"https://bids.github.io/colormap/",l:"EN",n:"Что такое перцептивная равномерность и почему jet вводит в заблуждение."},
+   {t:"Jake VanderPlas: How Bad Is Your Colormap?",u:"https://jakevdp.github.io/blog/2014/10/16/how-bad-is-your-colormap/",l:"EN",n:"Наглядное доказательство вреда jet: перевод в grayscale обнажает ложные скачки яркости."}],
+  done:"Для выбранной ноды видны три хитмапа; на фикстуре self-diff карта равномерно чёрная.",
+  pitfall:"REF и CAND обязаны делить одну шкалу цвета, иначе глаз увидит «разницу» там, где её нет."},
+ {id:"EV-21", t:"Полоса error-vs-depth", type:"code", time:"~1.5 ч",
+  goal:"Нижняя панель: бар на каждый слой, высота и цвет — Δ. История накопления дрейфа с глубиной.",
+  terms:["накопление ошибки","depth-wise view"],
+  theory:"Ошибка квантизации копится: каждый слой добавляет своё округление поверх уже искажённого входа. Полоса по глубине показывает этот сюжет одним взглядом и станет по-настоящему драматичной на CNN в фазе 3.",
+  steps:["Горизонтальная полоса баров внизу окна, по бару на сопоставленную точку","Цвет согласован с теплокартой списка","Клик по бару выбирает соответствующую ноду","Скриншот"],
+  links:[
+   {t:"Quantization Error Propagation (arXiv)",u:"https://arxiv.org/html/2504.09629v1",l:"EN",n:"Эмпирика накопления ошибки по глубине; читабельная HTML-версия для планшета."},
+   {t:"White Paper on NN Quantization (Qualcomm)",u:"https://arxiv.org/abs/2106.08295",l:"EN",n:"Канонический white paper: источники ошибки квантизации и пайплайн диагностики."}],
+  done:"Полоса живёт, клик синхронизирован со списком и инспектором.",
+  pitfall:"На однослойке полоса будет скучной — это нормально, ты строишь рамку под фазу 3."},
+ {id:"EV-22", t:"Ворота валидации: гифка наружу", type:"milestone", time:"~2 ч",
+  goal:"Записать 20-секундную демонстрацию дифф-вида и показать живым людям. Решение «строить ли дальше» — по реакции.",
+  terms:["validation gate","демо"],
+  theory:"Правило из плана проекта: не строить фазу 3+, пока ядро никто не видел. Демо — это ДИФФ, а не граф: «вот модель, вот её int8-версия, вот слой, где они разъехались, вот насколько». 20 секунд, без звука, с подписями.",
+  steps:["Запиши гифку/веб-видео: открыть → прогнать → теплокарта → клик в худшую ноду → три хитмапа","Тег v0.2, README с гифкой в шапке","Опубликуй в 1–2 местах, где живёт аудитория on-device ML (сообщества по локальному инференсу, ORT discussions, профильный Reddit)","Зафиксируй письменно: сколько реакций/вопросов = сигнал продолжать. Реши ДО публикации"],
+  links:[
+   {t:"ONNX Runtime: GitHub Discussions",u:"https://github.com/microsoft/onnxruntime/discussions",l:"EN",n:"Целевая аудитория: категории Performance Q&A и Show & Tell — первая площадка для гифки."},
+   {t:"r/LocalLLaMA",u:"https://www.reddit.com/r/LocalLLaMA/",l:"EN",n:"Крупнейшее сообщество on-device инференса — вторая площадка для демо."},
+   {t:"ScreenToGif",u:"https://github.com/NickeManarin/ScreenToGif",l:"EN",n:"Бесплатный Windows-рекордер с редактором и экспортом в GIF."}],
+  done:"Гифка опубликована, критерий сигнала записан, дата проверки реакции поставлена в календарь.",
+  pitfall:"Не жди вирусности — 5 содержательных комментариев от целевых людей стоят больше 100 лайков. И не начинай фазу 3 в тот же вечер."}
+]},
+{tag:"PHASE 3", name:"cnn_and_eps", title:"CNN, фич-мапы и второй бэкенд", evenings:"8 вечеров", out:"мульти-EP сравнение",
+ goal:"Модель становится свёрточной (фич-мапы обретают смысл), а сравнение — кросс-железным: второй execution provider, детект CPU-fallback, цена щупа. Появляется вторая ось дивергенции — железо.",
+ items:[
+ {id:"EV-23", t:"Свёртка руками: ядро, каналы, stride", type:"theory", time:"~2 ч",
+  goal:"Посчитать одну 3×3 свёртку на бумаге и понять, что такое фич-мапа.",
+  terms:["свёртка (Conv)","ядро/kernel","канал","stride","padding","feature map"],
+  theory:"<b>Свёртка</b> — скользящее окно: ядро 3×3 умножается поэлементно на участок входа и суммируется, результат — один пиксель выходной <b>фич-мапы</b>. Каналов выхода столько, сколько ядер. <b>Stride</b> — шаг окна, <b>padding</b> — рамка нулей по краям. Формула размера выхода: <code>(W − K + 2P)/S + 1</code>.",
+  steps:["Прочитай иллюстрированное объяснение свёртки (любой убедительный визуальный гайд по CNN)","Посчитай руками: вход 4×4, ядро 3×3, stride 1, без padding → выход 2×2","Проверь формулой размер выхода Conv 7×7 /2 на входе 224×224 с padding 3 (ответ: 112×112 — узнаёшь из resnet?)","Объясни себе, почему у Conv-слоя параметров мало (ядро переиспользуется), а вычислений много"],
+  links:[
+   {t:"CS231n: Convolutional Networks",u:"https://cs231n.github.io/convolutional-networks/",l:"EN",n:"Канонический конспект Стэнфорда: свёртка, stride, padding, формулы размеров выхода."},
+   {t:"3Blue1Brown: But what is a convolution?",u:"https://www.3blue1brown.com/lessons/convolutions/",l:"EN",n:"Визуальная интуиция свёртки — посмотреть перед ручным расчётом."},
+   {t:"Анимации свёрток (vdumoulin)",u:"https://github.com/vdumoulin/conv_arithmetic",l:"EN",n:"GIF-анимации: видно, как ядро скользит при разных stride/padding."},
+   {t:"Conv arithmetic guide (arXiv)",u:"https://arxiv.org/abs/1603.07285",l:"EN",n:"Dumoulin & Visin: строгая арифметика свёрток — справочник к анимациям выше."}],
+  done:"Свёртка 4×4·3×3 посчитана на листке; формула выхода применяется без подглядывания.",
+  pitfall:"Не лезь в depthwise/grouped свёртки и dilation — встретишь в реальных моделях позже, разберёшь по факту."},
+ {id:"EV-24", t:"Обучить мини-CNN", type:"code", time:"~2 ч",
+  goal:"Сеть из 2 Conv-слоёв на MNIST: материал, на котором фич-мапы и квантизация наконец интересны.",
+  terms:["Conv2d","MaxPool","архитектура"],
+  theory:"Архитектура вечера: <code>Conv(1→8,3×3) → ReLU → MaxPool → Conv(8→16,3×3) → ReLU → MaxPool → Flatten → Linear(→10)</code>. Точность ~98–99%, но важно другое: теперь промежуточные тензоры — пространственные карты, и их можно СМОТРЕТЬ.",
+  steps:["Собери и обучи мини-CNN (2–3 эпохи)","Экспортируй в ONNX, открой своим вьюером — список нод заметно длиннее","Проквантуй в int8 как в EV-16","Прогони дифф fp32 vs int8: теплокарта и error-vs-depth теперь с настоящим сюжетом"],
+  links:[
+   {t:"pytorch/examples: MNIST CNN",u:"https://github.com/pytorch/examples/tree/main/mnist",l:"EN",n:"Официальный минимальный пример CNN на MNIST — основа для мини-CNN."},
+   {t:"PyTorch: Training a Classifier",u:"https://docs.pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html",l:"EN",n:"Полный цикл обучения свёрточной сети: данные, loss, train loop, оценка."}],
+  done:"mnist_cnn.onnx и его int8-версия в репо; полоса error-vs-depth показывает накопление дрейфа по глубине.",
+  pitfall:"Если экспорт ругается на opset — подними версию opset в export. Не трать вечер на старые версии."},
+ {id:"EV-25", t:"Фич-мапы: сетка каналов + dead/saturated", type:"code", time:"~2.5 ч",
+  goal:"Инспектор Conv-нод показывает сетку каналов-хитмапов и помечает мёртвые/насыщенные.",
+  terms:["сетка каналов","dead channel","saturated channel"],
+  theory:"Выход Conv — [1,C,H,W]: C маленьких картинок. <b>Dead</b>-канал — почти всё нули (ReLU убил), <b>saturated</b> — почти всё на максимуме. Оба — диагностика: мёртвые каналы это выброшенные параметры, насыщенные — потеря информации при квантизации.",
+  steps:["Рендер первых 8–16 каналов выбранной Conv-ноды сеткой хитмапов","Эвристика: dead = доля |x|<ε выше 95%, saturated = доля значений у max выше 50%","Бейджи DEAD/SAT на плитках","Посмотри на первый Conv: ядра-детекторы краёв видны глазами"],
+  links:[
+   {t:"Visualizing Feature Maps in PyTorch",u:"https://www.geeksforgeeks.org/deep-learning/visualizing-feature-maps-using-pytorch/",l:"EN",n:"Туториал с кодом: извлечение активаций conv-слоёв и отрисовка сеткой."},
+   {t:"Dying ReLU (arXiv)",u:"https://arxiv.org/abs/1903.06733",l:"EN",n:"Почему каналы умирают — фундамент для детектора dead-каналов."}],
+  done:"Клик по Conv → сетка фич-мап с бейджами; ты нашёл хотя бы один dead-канал в своей CNN.",
+  pitfall:"Не рисуй все 16+ каналов разом без виртуализации, если рендер не мгновенный — 8 плиток достаточно."},
+ {id:"EV-26", t:"Execution Providers: карта мира 2026", type:"theory", time:"~1.5 ч",
+  goal:"Разобраться в ландшафте EP: что живо, что в maintenance, что доступно на твоём железе.",
+  terms:["execution provider","Windows ML","EP catalog","QNN","OpenVINO","CPU fallback"],
+  theory:"<b>EP</b> — подключаемый бэкенд исполнения ORT (CPU, CUDA, DirectML, QNN, OpenVINO, TensorRT…). Важно на 2026: DirectML — в maintenance mode, новый мир — Windows ML с каталогом вендорских EP, раздаваемых под железо. Ключевое для отладчика понятие — <b>fallback</b>: ноды, которые EP не умеет, молча уезжают на CPU.",
+  steps:["Прочитай страницу ORT Execution Providers и обзор Windows ML / EP catalog","Выпиши, какие EP реально доступны на ТВОЁМ железе (вспомни GetAvailableProviders из EV-03)","Прочитай про graph partitioning: как ORT делит граф между EP","Сформулируй, почему «модель работает на NPU» почти всегда значит «частично работает на NPU»"],
+  links:[
+   {t:"ORT Execution Providers",u:"https://onnxruntime.ai/docs/execution-providers/",l:"EN",n:"Карта всех EP и механика их работы — отправная точка вечера."},
+   {t:"Windows ML: EP catalog",u:"https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/supported-execution-providers",l:"EN",n:"Актуальный каталог EP Windows ML (QNN, OpenVINO, NvTensorRtRtx…); DirectML официально помечен как legacy."},
+   {t:"QNN Execution Provider",u:"https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html",l:"EN",n:"EP для Snapdragon NPU: бэкенды CPU/GPU/HTP, квантизация, кэш контекста."},
+   {t:"OpenVINO Execution Provider",u:"https://onnxruntime.ai/docs/execution-providers/OpenVINO-ExecutionProvider.html",l:"EN",n:"EP для Intel CPU/GPU/NPU, есть примеры на C#."}],
+  done:"В заметках — список твоих EP и план: какой будет вторым в сравнении (DirectML/CUDA/QNN/OpenVINO — что есть).",
+  pitfall:"Не пытайся поставить EP под железо, которого у тебя нет. Сравнение CPU vs любой-один-GPU/NPU-EP полностью раскрывает механику."},
+ {id:"EV-27", t:"Второй EP в деле: первый кросс-железный дифф", type:"code", time:"~2.5 ч",
+  goal:"RunConfig обретает смысл: та же модель на CPU-EP и на твоём втором EP, дифф между ними.",
+  terms:["SessionOptions.AppendExecutionProvider","кросс-EP дивергенция"],
+  theory:"Теперь кандидат отличается не файлом модели, а провайдером — то самое обобщение из EV-17. Расхождение fp32-CPU vs fp32-GPU будет крошечным (порядок float-неассоциативности, 1e-5…1e-7), и это сам по себе урок: даже «одинаковая» математика на разном железе не битэксактна.",
+  steps:["Добавь выбор EP в RunConfig и создание сессии с нужным провайдером","Прогони fp32-CNN: CPU vs второй EP, сними дифф по нодам","Посмотри величины: где float-шум, а где что-то большее","Теперь int8 на втором EP против fp32 на CPU — две оси сразу; заметь, что причина расхождения стала неоднозначной (это сюжет v2-фичи «изоляция осей»)"],
+  links:[
+   {t:"SessionOptions: C# API",u:"https://onnxruntime.ai/docs/api/csharp/api/Microsoft.ML.OnnxRuntime.SessionOptions.html",l:"EN",n:"AppendExecutionProvider_* — методы подключения второго EP из C#."},
+   {t:"NuGet: Microsoft.ML.OnnxRuntime.Gpu",u:"https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu",l:"EN",n:"GPU-пакет ORT (CUDA/TensorRT)."},
+   {t:"NuGet: Microsoft.ML.OnnxRuntime.QNN",u:"https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.QNN",l:"EN",n:"Пакет с QNN EP для Windows ARM64 (Copilot+ PC)."}],
+  done:"Теплокарта работает для пары конфигов с разными EP; величины кросс-EP шума записаны в заметки.",
+  pitfall:"Если второй EP недоступен в C#-пакете — возьми соответствующий пакет (Microsoft.ML.OnnxRuntime.Gpu и т.п.); не собирай ORT из исходников, это не вечерняя задача."},
+ {id:"EV-28", t:"EP-map: на чём реально исполнилась нода", type:"code", time:"~2.5 ч",
+  goal:"Показать на каждой ноде бейдж EP и поймать молчаливый CPU-fallback.",
+  terms:["node placement","fallback-детект","verbose logging"],
+  theory:"ORT при verbose-логировании сообщает распределение нод по EP (graph partitioning). Падение половины модели на CPU — типичная причина «NPU почему-то не ускорил», и инструментов, показывающих это наглядно, почти нет. Это одна из самых продаваемых фич твоего инструмента.",
+  steps:["Включи verbose-лог сессии / профилирование и вытащи привязку нода→EP","Бейдж EP на каждой ноде списка (цвет на провайдер)","Сводка: N нод на NPU/GPU, M на CPU (fallback) — крупно, с warning если M велико","Найди модель/EP-комбинацию, где fallback реально случается, и сделай скриншот"],
+  links:[
+   {t:"ORT: Performance Troubleshooting",u:"https://onnxruntime.ai/docs/performance/tune-performance/troubleshooting.html",l:"EN",n:"Официальный рецепт: verbose logging показывает, какие ноды на какой EP легли."},
+   {t:"onnxruntime wiki: Logging",u:"https://github.com/microsoft/onnxruntime/wiki/Logging",l:"EN",n:"Severity-уровни и VLOG — как включить максимальную детализацию."},
+   {t:"Рецепт: node placement (HF forum)",u:"https://discuss.huggingface.co/t/some-nodes-were-not-assigned-to-the-preferred-execution-providers/62134",l:"EN",n:"set_default_logger_severity(0) и почему shape-ops ORT сознательно оставляет на CPU."}],
+  done:"Каждая нода подписана своим EP; сводка fallback видна сразу при загрузке.",
+  pitfall:"Формат логов ORT меняется между версиями — изолируй парсер в отдельный класс с тестом, это твоя «плагинная гибкость» в миниатюре."},
+ {id:"EV-29", t:"Цена щупа: фьюзинг и честность инструмента", type:"mix", time:"~2 ч",
+  goal:"Понять graph fusion и показать пользователю, что включённый щуп меняет исполнение.",
+  terms:["graph fusion","оптимизации ORT","observer effect"],
+  theory:"ORT склеивает цепочки нод (Conv+ReLU и т.п.) в fused-ядра; промежуточного тензора между ними физически НЕТ. Добавление его в outputs (твой щуп) запрещает склейку — модель с щупом исполняется иначе и медленнее. Честный отладчик это декларирует, а не скрывает.",
+  steps:["Прочитай про graph optimizations ORT (уровни basic/extended/all)","Сравни список нод после оптимизаций (verbose-лог) с щупом и без — найди расклеенную пару","Бейдж в UI у активного щупа: probe active · fusion broken","Замерь грубо время Run() с щупом и без — почувствуй цену"],
+  links:[
+   {t:"ORT: Graph Optimizations",u:"https://onnxruntime.ai/docs/performance/model-optimizations/graph-optimizations.html",l:"EN",n:"Уровни Basic/Extended/Layout и список фьюзий (Conv+BN, Conv+Activation…) — почему щуп ломает склейку."}],
+  done:"Ты можешь показать конкретную пару нод, которую расклеил твой щуп, и UI честно об этом говорит.",
+  pitfall:"Не пытайся «обойти» фьюзинг хитростью — невозможность бесплатного щупа фундаментальна, твоё решение — прозрачность."},
+ {id:"EV-30", t:"Кандидаты как данные: рефакторинг к v2", type:"code", time:"~2 ч",
+  goal:"Закрепить модель данных: эталон + произвольный список кандидатов {model, precision, EP}, UI «REF vs выбранный CAND».",
+  terms:["модель данных кандидатов","ось сравнения"],
+  theory:"Подготовка к north-star UI без его постройки: внутри — N кандидатов, в интерфейсе — по-прежнему попарное сравнение (REF против одного выбранного). Оси (precision/EP) — данные, не хардкод. Это страховка от переписывания при росте.",
+  steps:["Рефактори: ComparisonSession {Reference, Candidates[]}, активный кандидат — выбор в UI","Селектор кандидата в шапке (как REF → CAND в твоём прототипе)","Кэш прогонов на кандидата, чтобы переключение было мгновенным","Тег v0.3"],
+  done:"Переключение кандидата в шапке мгновенно меняет теплокарту; добавить третьего кандидата — три строчки кода.",
+  pitfall:"Не строй N-колоночный UI сравнения «всех со всеми» — это v2-экран, до валидации он не нужен."}
+]},
+{tag:"PHASE 4", name:"real_model", title:"Реальная модель: фолдинг, перф, релиз", evenings:"8 вечеров", out:"v1 наружу",
+ goal:"Столкновение с resnet18: сотни сырых нод, необходимость фолдинга, перф-слой из профайлера ORT и публичный релиз v1.",
+ items:[
+ {id:"EV-31", t:"resnet18: столкновение с реальностью", type:"code", time:"~2 ч",
+  goal:"Загрузить предобученный resnet18 и увидеть, где инструмент трещит.",
+  terms:["model zoo","предобученная модель","ImageNet-классы"],
+  theory:"Конец самодельных моделей: берёшь resnet18 из torchvision, экспортируешь и скармливаешь своему вьюеру. Сырых ONNX-нод будет много десятков — список становится нечитаемым, инспектор тормозит на больших тензорах. Сегодняшняя задача — не чинить, а ЗАМЕРИТЬ и записать боли.",
+  steps:["Экспортируй torchvision resnet18 в ONNX, подготовь препроцессинг ImageNet (224×224, mean/std)","Прогони фото кружки — получи top-1 (метки классов ImageNet возьми файлом)","Открой своим вьюером, прогони int8-дифф","Запиши список болей: сколько нод, где тормозит, что нечитаемо"],
+  links:[
+   {t:"torchvision: resnet18",u:"https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html",l:"EN",n:"Официальная страница с весами IMAGENET1K и точным препроцессингом."},
+   {t:"Метки 1000 классов ImageNet (JSON)",u:"https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json",l:"EN",n:"Стабильный raw-JSON для маппинга индекс → класс."},
+   {t:"torchvision.transforms",u:"https://docs.pytorch.org/vision/stable/transforms.html",l:"EN",n:"Resize/CenterCrop/Normalize — эталон препроцессинга, который надо воспроизвести на C#."}],
+  done:"resnet18 проходит через весь конвейер; список болей из 5+ пунктов записан как issues в репо.",
+  pitfall:"Не начинай чинить боли сегодня — смешаешь диагностику с лечением и потеряешь картину."},
+ {id:"EV-32", t:"Иерархия имён ONNX: теория фолдинга", type:"theory", time:"~1.5 ч",
+  goal:"Понять, как из плоского списка нод восстановить структуру модели по префиксам имён.",
+  terms:["иерархия имён","/layer3/layer3.1/conv2/Conv","группировка по префиксу"],
+  theory:"Экспорт из PyTorch кодирует структуру модулей в имена нод: <code>/layer1/layer1.0/conv1/Conv</code>. Разрезав имена по «/», получаешь дерево — это и есть основа фолдинга. Группа агрегирует Δ детей (max — честный «worst-of»), но помни урок прототипа: у свёрнутой группы нет единого тензора, инспектор должен предлагать drill-in.",
+  steps:["Выгрузи имена всех нод resnet18 в текст и изучи структуру префиксов","Спроектируй на бумаге дерево: глубина фолдинга, что показывать схлопнутым по умолчанию","Реши правило агрегации Δ группы (рекомендация: max детей + счётчик «нод выше порога»)","Продумай fallback для моделей без иерархических имён (экспорт не из PyTorch): группировка по типам? без фолдинга?"],
+  links:[
+   {t:"torch.export ONNX exporter: метаданные нод",u:"https://docs.pytorch.org/docs/2.12/onnx_export.html",l:"EN",n:"Как namespace и class_hierarchy модулей попадают в имена и метаданные нод при экспорте."},
+   {t:"pytorch#75100: scope names in ONNX",u:"https://github.com/pytorch/pytorch/issues/75100",l:"EN",n:"Контекст, почему имена нод кодируют путь модулей — и что это конвенция экспортёра, а не стандарт."}],
+  done:"На бумаге — дерево resnet18 до 2 уровней и правила агрегации; krайние случаи продуманы.",
+  pitfall:"Имена — конвенция экспортёра, не стандарт ONNX. Фолдинг обязан деградировать в плоский список, а не падать."},
+ {id:"EV-33", t:"Фолдинг в коде: группы и разворот", type:"code", time:"~3 ч",
+  goal:"Список нод превращается в дерево групп с разворотом по клику и агрегированным Δ.",
+  terms:["tree view","агрегация Δ","drill-in"],
+  theory:"Самый тяжёлый UI-вечер курса. Дерево строится из префиксов, группа показывает worst-Δ детей и их количество; разворот ленивый. Если не влезает в вечер — это ожидаемо: дроби на «построение дерева» и «UI разворота», план это переживёт.",
+  steps:["Построение дерева групп из имён (чистая функция + тест на именах resnet18)","UI: группы со счётчиком «N ONNX nodes folded», клик разворачивает","Δ группы = max по детям, цвет группы по нему","Плашка в инспекторе группы: «единого тензора нет — drill in» (урок прототипа)"],
+  links:[
+   {t:"W3C APG: Tree View Pattern",u:"https://www.w3.org/WAI/ARIA/apg/patterns/treeview/",l:"EN",n:"Эталонное поведение дерева: раскрытие, сворачивание, клавиатурная навигация."}],
+  done:"resnet18 открывается как ~10 групп; разворот показывает сырые ноды; теплокарта работает на обоих уровнях.",
+  pitfall:"Ленивый рендер детей обязателен — разворачивание всех групп разом не должно вешать UI."},
+ {id:"EV-34", t:"Авто-разворот горячей группы + большие тензоры", type:"code", time:"~2 ч",
+  goal:"При загрузке сравнение само раскрывает самую расходящуюся группу; инспектор не давится тензорами 256×56×56.",
+  terms:["auto-expand hottest","downsampling визуализации"],
+  theory:"Пользователь должен видеть пик без единого клика — инструмент сам ведёт к проблеме. Для больших фич-мап рисуй уменьшенную версию (страйдовая выборка), но статистики считай по полному тензору: картинка — приближение, числа — точные.",
+  steps:["После прогона: найти группу с worst-Δ, развернуть, проскроллить к пиковой ноде, подсветить","Бейдж auto-expanded · hottest group","Даунсэмпл хитмапов до ~64×64 при рендере, полные данные — в статистиках","Проверь отзывчивость на resnet18: клик по ноде < 200 мс"],
+  links:[
+   {t:"LTTB: downsampling без потери сигнала",u:"https://rajnandan.com/posts/largest-triangle-three-buckets-downsampling/",l:"EN",n:"Почему наивный даунсэмплинг съедает пики и как сохранять форму данных."}],
+  done:"Открыл сравнение → через секунду смотришь на худшую ноду без действий. Инспектор шустрый.",
+  pitfall:"Не интерполируй при даунсэмпле (никакого сглаживания) — выбросы-одиночки должны остаться видимыми."},
+ {id:"EV-35", t:"Перф-слой: per-op латентность из профайлера ORT", type:"code", time:"~2.5 ч",
+  goal:"Включить встроенный профайлер ORT и показать время каждой ноды рядом с её Δ.",
+  terms:["enable_profiling","JSON trace","per-op latency"],
+  theory:"<code>SessionOptions.EnableProfiling</code> пишет JSON-трейс (формат chrome://tracing) со временем каждого опа. Тебе не нужен свой профайлер уровня вендоров — пер-оп времени из ORT достаточно для связки «скорость ↔ точность», которая и есть твой второй ров. Помни про оговорку честности: ускорение между конфигами смешивает EP+precision+устройство.",
+  steps:["Включи профилирование, прогони, распарси JSON-трейс (имя опа → время)","Сматчи времена с нодами своего графа (отдельный класс-парсер + тест, формат меняется между версиями)","Колонка времени в списке нод; COLOR BY: divergence / latency","Суммарное время по группам при фолдинге"],
+  links:[
+   {t:"ORT: Profiling Tools",u:"https://onnxruntime.ai/docs/performance/tune-performance/profiling-tools.html",l:"EN",n:"enable_profiling, JSON-трейс сессии и его просмотр в chrome://tracing."},
+   {t:"Perfetto: Chrome JSON формат",u:"https://perfetto.dev/docs/getting-started/other-formats",l:"EN",n:"Формат trace event (ph/ts/pid/tid) и просмотр трейса в ui.perfetto.dev."}],
+  done:"Каждая нода показывает Δ и мс; переключение раскраски работает.",
+  pitfall:"Первый Run() включает warmup и JIT — профилируй со второго-третьего прогона, иначе числа врут."},
+ {id:"EV-36", t:"Trade-off вид: Δt против Δ", type:"code", time:"~2.5 ч",
+  goal:"Скаттер «выигрыш скорости от int8 vs цена в расхождении» по нодам — вид, которого нет ни у кого.",
+  terms:["Pareto-вид","speed-accuracy trade-off","keep FP32?"],
+  theory:"Соединение двух половин инструмента: X = время, сэкономленное квантизацией ноды, Y = её Δ. Верхний-левый угол (дорого по точности, дёшево по скорости) — кандидаты «вернуть в FP32». Это вид, ради которого нужны ОБЕ половины данных — потому его нет ни у вендорских профайлеров, ни у diff-утилит.",
+  steps:["Посчитай per-node Δt = t(fp32) − t(int8) из двух профилей","Скаттер во второй вкладке нижней панели: точки-ноды, цвет по Δ","Подпиши выбросы именами; клик по точке выбирает ноду","Строка-вердикт в инспекторе: Δt saved · Δ cost · вердикт (worth it / keep FP32?)"],
+  links:[
+   {t:"ORT Quantization: отладка точности",u:"https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html",l:"EN",n:"Разделы про debugging и trade-off скорость/точность — фон для скаттера."}],
+  done:"Вкладка SPEED↔ACCURACY показывает осмысленный скаттер на resnet18; хотя бы один «keep FP32?»-кандидат найден.",
+  pitfall:"Per-node времена шумные — усредни по 5–10 прогонам, иначе скаттер будет плясать между запусками."},
+ {id:"EV-37", t:"Полировка: 30 секунд до первого графа", type:"code", time:"~2.5 ч",
+  goal:"Снизить трение «скачал → увидел»: single-file сборка, drag&drop, образцовая модель в комплекте.",
+  terms:["single-file publish","time-to-first-value","onboarding"],
+  theory:"Порог входа решает судьбу опенсорса: от скачивания до «вижу теплокарту» — меньше 30 секунд. Single-file publish .NET, drag&drop ONNX на окно, и встроенная пара моделей (fp32+int8 mnist_cnn) с кнопкой «try sample» — чтобы ценность была видна даже без своей модели под рукой.",
+  steps:["dotnet publish в один файл; проверь холодный старт на чистой машине/VM","Drag&drop модели на окно","Кнопка Try sample: вшитая пара моделей + картинка → сразу дифф-вид","Пройди путь глазами новичка по секундомеру; убери всё, что съедает время"],
+  links:[
+   {t:".NET: Single-file deployment",u:"https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview",l:"EN",n:"PublishSingleFile и IncludeNativeLibrariesForSelfExtract — критично для нативных dll ORT."},
+   {t:".NET: Trimming",u:"https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trim-self-contained",l:"EN",n:"PublishTrimmed и что может сломаться при ужимании бинаря."}],
+  done:"Секундомер: скачивание → теплокарта < 30 сек через Try sample.",
+  pitfall:"Не добавляй установщик/автообновление — однофайловый exe и zip достаточно для v1."},
+ {id:"EV-38", t:"Релиз v1: README, гифки, публикация", type:"milestone", time:"~3 ч",
+  goal:"Проект наружу: репозиторий с человеческим README, релиз с бинарём, пост для целевых сообществ.",
+  terms:["release","positioning","one-liner"],
+  theory:"Позиционирование в одну строку, которое отвечает на «чем не Netron/не TensorBoard»: «Netron показывает граф — Neuro Reaper его запускает и показывает, где два бэкенда разъехались». Главный артефакт README — гифка дифф-вида и trade-off-скаттера. Ватт-метрики, бенчмарк-база и нейроморфика в v1 не упоминаются вовсе.",
+  steps:["README: one-liner, 2 гифки, quick start (3 шага), таблица «vs Netron / Polygraphy / Nsight» честная","GitHub Release с single-file сборкой","Пост в те же места, что в EV-22 + тем, кто тогда откликнулся лично","Заведи ROADMAP.md: изоляция осей (v2), N-кандидатная матрица, QNN-карта — пусть желающие голосуют ишьюсами"],
+  links:[
+   {t:"Make a README",u:"https://www.makeareadme.com/",l:"EN",n:"Шаблон хорошего README: структура Install/Usage/Contributing."},
+   {t:"GitHub: Managing Releases",u:"https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository",l:"EN",n:"Создание релиза с бинарными артефактами через UI и gh CLI."},
+   {t:"Show HN Guidelines",u:"https://news.ycombinator.com/showhn.html",l:"EN",n:"Правила Show HN — как корректно представить проект сообществу."}],
+  done:"Релиз опубликован; первый внешний пользователь открыл свою модель (попроси любого знакомого с ONNX-файлом).",
+  pitfall:"Не откладывай релиз до «ещё одной фичи» — v1 с двумя видами, который вышел, бьёт v2, который пишется. Дальше курс заканчивается и начинается продукт: приоритеты диктуют пользователи."}
+]}
+];
+const GLOSSARY = [
+["тензор / shape / dtype","Многомерный массив чисел; shape — размеры по осям (например <b>1×3×224×224</b> = батч, каналы, высота, ширина); dtype — тип элементов (float32, int8…)."],
+["forward pass (форвард-пасс)","Последовательное вычисление слоёв от входа к выходу. Промежуточные результаты — тензоры активаций; их и инспектирует отладчик."],
+["ONNX","Открытый формат-посредник: вычислительный граф из нод-операторов, рёбер-тензоров и инициализаторов (весов). Сериализуется в protobuf."],
+["инициализатор","Тензор-константа, вшитый в ONNX-граф, — почти всегда веса и bias слоёв."],
+["opset","Версия словаря операторов ONNX. Экспортёр и рантайм должны её согласовать."],
+["ONNX Runtime (ORT)","Кросс-платформенный движок исполнения ONNX-моделей с подключаемыми бэкендами (execution providers)."],
+["execution provider (EP)","Бэкенд исполнения внутри ORT: CPU, CUDA, QNN (NPU Qualcomm), OpenVINO, DirectML (maintenance)… Граф делится между EP; неподдержанные ноды уезжают на CPU."],
+["CPU fallback","Молчаливое исполнение части графа на CPU, когда выбранный EP не умеет эти ноды. Главная причина «NPU не ускорил»."],
+["квантизация / scale / zero-point","Сжатие float32 в int8: q = round(x/scale) + zero_point. Scale — цена шага, zero-point — int-представление нуля. Источник управляемой потери точности."],
+["QDQ","Пары нод QuantizeLinear/DequantizeLinear, которыми статическая квантизация размечает граф."],
+["калибровка","Прогон представительных данных для подбора scale/zero-point активаций при статической квантизации."],
+["деквантизация перед сравнением","Правило диффа: int8-значения переводятся обратно во float до сравнения с эталоном — иначе метрики бессмысленны."],
+["max abs / mean abs / cosine","Три метрики расхождения тензоров: худший выброс, средний дрейф, сохранность направления (формы паттерна)."],
+["reference / candidate","Эталонная конфигурация прогона (обычно CPU·FP32) и сравниваемая с ней (другой precision/EP/устройство)."],
+["graph fusion","Склейка цепочек нод в одно ядро при оптимизации. Промежуточных тензоров внутри склейки физически не существует — поэтому щуп ломает фьюзинг."],
+["щуп (probe)","Промежуточный тензор, добавленный в выходы графа ради инспекции. Меняет исполнение (ломает фьюзинг) — честный инструмент это декларирует."],
+["feature map / dead / saturated","Пространственный канал выхода Conv-слоя. Dead — почти весь нулевой, saturated — упёрся в максимум; оба — диагностические сигналы."],
+["фолдинг графа","Сворачивание сырых ONNX-нод в группы по иерархии имён (/layer1/…). Группа агрегирует Δ детей; единого тензора у неё нет."],
+["per-op профилирование","Время исполнения каждой ноды из встроенного профайлера ORT (JSON-трейс). Основа trade-off-вида «скорость ↔ точность»."],
+["Windows ML / EP catalog","Преемник DirectML: те же ORT-API, вендорские EP (QNN, OpenVINO, TensorRT-RTX…) раздаются динамически под железо и драйверы."]
+];
+/* ---------- render & state ---------- */
+const ALL = PHASES.flatMap(p=>p.items);
+const KEY='nr-course-v1';
+let state={};
+try{ state=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ state={}; }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+const stepsOf = ev => state[ev.id]?.steps || [];
+const isDone = ev => (stepsOf(ev).filter(Boolean).length===ev.steps.length);
+
+const badge = t => t==='theory'?'<span class="bdg theory">теория</span>'
+  : t==='code'?'<span class="bdg code">код</span>'
+  : t==='mix'?'<span class="bdg mix">теория+код</span>'
+  : '<span class="bdg milestone">milestone</span>';
+
+function render(){
+  /* phases & cards */
+  const root=document.getElementById('phases'); root.innerHTML='';
+  PHASES.forEach((ph,pi)=>{
+    const sec=document.createElement('section'); sec.className='phase'; sec.id='phase'+pi;
+    const doneN=ph.items.filter(isDone).length;
+    sec.innerHTML=`<div class="phase-head"><span class="tag">${ph.tag}</span><h2>${ph.title}</h2>
+      <span class="meta mono">${doneN}/${ph.items.length} · out: ${ph.out}</span></div>
+      <p class="phase-goal">${ph.goal}</p>`;
+    ph.items.forEach(ev=>{
+      const card=document.createElement('article');
+      const open = state[ev.id]?.open;
+      card.className='ev'+(isDone(ev)?' done':'')+(open?' open':'');
+      const st=stepsOf(ev);
+      card.innerHTML=`
+      <div class="ev-head" role="button" tabindex="0" aria-expanded="${!!open}">
+        <span class="ev-id">${isDone(ev)?'✓ ':''}${ev.id}</span>
+        <span class="ev-title">${ev.t}</span>
+        <span class="ev-badges">${badge(ev.type)}${ev.id==='EV-22'?'<span class="bdg gate">gate</span>':''}<span class="bdg">${ev.time}</span></span>
+        <span class="ev-chev">▶</span>
+      </div>
+      <div class="ev-body">
+        <div class="ev-sec goal"><h4>Цель вечера</h4><p>${ev.goal}</p></div>
+        <div class="ev-sec theory"><h4>Теория и термины</h4>
+          <div class="terms">${ev.terms.map(t=>`<span class="term">${t}</span>`).join('')}</div>
+          <p>${ev.theory}</p></div>
+        ${ev.links&&ev.links.length?`<div class="ev-sec"><h4>Материалы для изучения</h4><ul class="lnk">${ev.links.map(L=>`<li><a href="${L.u}" target="_blank" rel="noopener">${L.t}</a><span class="lng">${L.l}</span><div class="lnote">${L.n}</div></li>`).join('')}</ul></div>`:''}
+        <div class="ev-sec"><h4>Шаги</h4><ul class="steps">
+          ${ev.steps.map((s,i)=>`<li class="${st[i]?'checked':''}"><input type="checkbox" data-ev="${ev.id}" data-i="${i}" ${st[i]?'checked':''} aria-label="шаг ${i+1}"><span>${s}</span></li>`).join('')}
+        </ul></div>
+        <div class="donebox"><b>Критерий: готово</b>${ev.done}</div>
+        ${ev.pitfall?`<div class="pitfall"><b>Ловушка</b>${ev.pitfall}</div>`:''}
+      </div>`;
+      const head=card.querySelector('.ev-head');
+      const toggle=()=>{ state[ev.id]=state[ev.id]||{steps:[]}; state[ev.id].open=!state[ev.id].open; save(); render(); };
+      head.addEventListener('click',toggle);
+      head.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();} });
+      sec.appendChild(card);
+    });
+    root.appendChild(sec);
+  });
+  root.querySelectorAll('.steps input').forEach(cb=>{
+    cb.addEventListener('click',e=>e.stopPropagation());
+    cb.addEventListener('change',e=>{
+      const id=e.target.dataset.ev, i=+e.target.dataset.i;
+      const ev=ALL.find(x=>x.id===id);
+      state[id]=state[id]||{steps:[]};
+      state[id].steps[i]=e.target.checked;
+      /* keep card open */ state[id].open=true;
+      save(); render();
+    });
+  });
+  /* header heatstrip + pct */
+  const strip=document.getElementById('heatstrip'); strip.innerHTML='';
+  const doneCount=ALL.filter(isDone).length;
+  let currentMarked=false;
+  ALL.forEach(ev=>{
+    const i=document.createElement('i');
+    if(isDone(ev)) i.className='done';
+    else if(!currentMarked){ i.className='current'; currentMarked=true; }
+    strip.appendChild(i);
+  });
+  document.getElementById('pct').textContent=Math.round(doneCount/ALL.length*100)+'%';
+  /* graph nav */
+  const gn=document.getElementById('graphnav'); gn.innerHTML='';
+  PHASES.forEach((ph,pi)=>{
+    if(pi>0){
+      const edge=document.createElement('div'); edge.className='gn-edge';
+      edge.innerHTML=`<span class="shape">${PHASES[pi-1].out}</span><svg width="26" height="10" viewBox="0 0 26 10"><path d="M0 5h20m0 0l-5-4m5 4l-5 4" stroke="#586069" fill="none" stroke-width="1.4"/></svg>`;
+      gn.appendChild(edge);
+    }
+    const node=document.createElement('div'); node.className='gn-node'; node.setAttribute('role','link'); node.tabIndex=0;
+    const dn=ph.items.filter(isDone).length;
+    let curIdx=ph.items.findIndex(ev=>!isDone(ev));
+    node.innerHTML=`<div class="op">${ph.tag} · ${ph.evenings}</div><div class="nm">${ph.name}</div>
+      <div class="strip">${ph.items.map((ev,ei)=>`<i class="${isDone(ev)?'done':(ei===curIdx?'current':'')}"></i>`).join('')}</div>`;
+    const go=()=>document.getElementById('phase'+pi).scrollIntoView({behavior:'smooth'});
+    node.addEventListener('click',go);
+    node.addEventListener('keydown',e=>{ if(e.key==='Enter'){go();} });
+    gn.appendChild(node);
+  });
+  /* glossary */
+  const gl=document.getElementById('glbody');
+  if(!gl.dataset.filled){
+    gl.innerHTML=GLOSSARY.map(([k,v])=>`<dl class="gl-item"><dt>${k}</dt><dd>${v}</dd></dl>`).join('');
+    gl.dataset.filled='1';
+  }
+}
+render();
+
+</script>
+</body>
+</html>
